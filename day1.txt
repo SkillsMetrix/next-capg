@@ -87,3 +87,24 @@ function MainApp() {
 
 export default MainApp;
 
+
+----
+'use client'
+
+import { useEffect, useState } from "react"
+import { writeToStorage } from "../lib/storage"
+
+
+export function useUsers(){
+    const [users,setUsers]= useState([])
+
+    useEffect(()=>{
+        writeToStorage(users)
+    },[users])
+
+    const addUser=(user)=>{
+        setUsers(prev => [...prev,{...user,id: Date.now().toString()}])
+    }
+    return {users,addUser}
+}
+
