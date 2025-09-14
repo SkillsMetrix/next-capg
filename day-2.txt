@@ -1,28 +1,29 @@
-'use client'
+import Link from "next/link";
+import dynamic from "next/dynamic";
+import { fetchFlights } from "@/lib/api";
+import { Suspense } from "react";
 
-import { useSearchParams,useRouter } from "next/navigation";
- 
-export default function FlightFilterClient(){
+const FlightCard= dynamic(()=>import('../../components/FlightCard'),{
+  loading: () => <div className="card">Loading card.....!</div>
+})
+export default async function FlightsPage({searchParams}) {
 
-    const params= useSearchParams()
-    const router= useRouter()
-    const status= params.get('status') || ''
-
-    function setStatus(s){
-        const url= new URL(window.location.href)
-        if(s) url.searchParams.set('status',s)
-        else url.searchParams.delete('status')
-        router.push(url.pathname + url.search)
-
-}
-
-return (
-    <div style={{margin: '8px 0'}}>
-        <button onClick={()=> setStatus('')}>All</button>
-        <button onClick={()=> setStatus('On Time')}>On Time</button>
-         <button onClick={()=> setStatus('Delayed')}>Delayed</button>
-          <div className="small">Active Filter: {status || 'none'}</div>
-    </div>
-)
-
+  const resolved= await searchParams;
+  let status= resolved?.status ?? null
+  if (Array.isArray(status))status = status[0]
+  if( status === '')status= null
+  
+  let flights = await fetchFlights()
+  if(status) flights = flights.filter(f => String(f.status).toLowerCase() === String(status).toLowerCase())
+  return (
+    <div>
+      <div className="grid">
+        {flights.map(f => (
+          <Suspense key={f.id} fallback={<div className="card">Loading...!</div>}>
+            <FlightCard flight={f}/>
+          </Suspense>
+        ))}
+      </div>
+      </div>
+  );
 }
