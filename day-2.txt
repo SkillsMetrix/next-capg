@@ -1,38 +1,31 @@
 
-import Link from "next/link";
-import styles from './Navigation.module.css'
-export default function Navigation(){
-    return(
 
-      <nav className={styles.navBar} aria-label="Main navigation">
-      <ul className={styles.navList}>
-        <li className={styles.navItem}>
-        <Link href="/" className={styles.link}>Home</Link> | {" "}
-        </li>
+export default function DocsPage({params}) {
+  const slugArray= params?.slug
+  const isIndex = !slugArray || slugArray.length === 0
+  const path= isIndex ? "/docs" : `/docs/${slugArray.join("/")}`
 
-         <li className={styles.navItem}>
-        <Link href="/about" className={styles.link}>About</Link> | {" "}
-        </li>
-
-  <li className={styles.navItem}>
-    <span className={styles.link} tabIndex={0}>Services</span>
-      <ul className={styles.dropdown} role="menu" aria-label="Service submenu">
-        <li>
-        <Link href="/services/web" className={styles.dropdownItem}>Web Development</Link>
-        </li>
-        <li>
-        <Link href="/services/mobile" className={styles.dropdownItem}>Mobile Development</Link>
-        </li>
-        <li>
-        <Link href="/services/cloud" className={styles.dropdownItem}>Cloud Development</Link>
-        </li>
+  return (
+    <div>
+    <h1>📊 Docs App</h1>
+    {isIndex} ? (
+      <>
+      <p> this is Docs Index Page, Path <code>{path}</code></p>
+      <p>Provided Links </p>
+      <ul>
+        <li><a href="/docs/intro">/docs/intro</a></li>
+         <li><a href="/docs/intro/getting-started">/docs/intro/getting-started</a></li>
       </ul>
-
-
-
-        <Link href="/about" className={styles.link}>About</Link> | {" "}
-        </li>
-      </ul>
-</nav>
+      
+      <p>
+        <code>app/docs/[[...slug]]/page.js</code>
+      </p>
+      </>
+    ) : (
+      <>
+      <p>Data here</p>
+      </>
     )
+    </div>
+  )
 }
