@@ -27,3 +27,57 @@ export default async function FlightsPage({searchParams}) {
     </div>
   );
 }
+
+
+-----
+
+
+
+'use client'
+import { currencyINR, flightDisplayName } from '@/models/flightModel'
+import Link from 'next/link'
+
+
+export default function FlightCard({flight}){
+    return(
+        <div className='card'>
+            <h3>{flightDisplayName(flight)}</h3>
+            <div className='small'>Duration: {flight.duration} Seats: {flight.seats}</div>
+            <div style={{marginTop: 8}}>
+                <strong>{currencyINR(flight.price)}</strong>
+                <span style={{marginLeft: 12}} className='small'>Status: {flight.status}</span>
+            </div>
+            <div style={{marginTop: 12}}>
+
+                
+            </div>
+
+        </div>
+    )
+}
+
+
+
+----
+
+
+import Link from "next/link";
+
+
+
+export default function FlightsLayout({ children }) {
+  return (
+    <section>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+        <h2>Flight Status</h2>
+        <nav>
+          <Link href="/flights">All</Link> {' | '}
+          <Link href="/flights">On Time</Link> {' | '}
+          <Link href="/flights">Delayed</Link>
+        </nav>
+      </div>
+
+      <div>{children}</div>
+    </section>
+  )
+}
