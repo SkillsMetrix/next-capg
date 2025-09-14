@@ -1,41 +1,30 @@
-export default function DocsPage({ params }) {
-  const slugArray = params?.slug;
-  const isIndex = !slugArray || slugArray.length === 0;
-  const path = isIndex ? "/docs" : `/docs/${slugArray.join("/")}`;
 
-  return (
-    <div>
-      <h1>Docs</h1>
 
-      {isIndex ? (
-        <>
-          <p>This is the Docs  page. Path: <code>{path}</code></p>
-
-          <h3>Example doc links</h3>
-          <ul>
-            <li><a href="/docs/intro">/docs/intro</a></li>
-            <li><a href="/docs/getting-started/setup">/docs/getting-started/setup</a></li>
-            <li><a href="/docs/api/v1/auth/login">/docs/api/v1/auth/login</a></li>
-          </ul>
-
-          <p>
-            Note: this route uses an <strong>optional catch-all</strong> segment:
-            <code>app/docs/[[...slug]]/page.js</code>
-          </p>
-        </>
-      ) : (
-        <>
-          <p>Showing doc for: <strong>{path}</strong></p>
-          <section>
-            <h2>{slugArray[slugArray.length - 1]}</h2>
-            <p>This is placeholder content for the doc at <code>{path}</code>.</p>
-            <details>
-              <summary>Raw params</summary>
-              <pre>{JSON.stringify({ slug: slugArray }, null, 2)}</pre>
-            </details>
-          </section>
-        </>
-      )}
-    </div>
-  );
+{
+  "flights": [
+    { "id": 1, "code": "AI101", "from": "DEL", "to": "BOM", "duration": "2h 10m", "seats": 180, "price": 4500, "status": "On Time" },
+    { "id": 2, "code": "6E202", "from": "BLR", "to": "DEL", "duration": "2h 30m", "seats": 150, "price": 5200, "status": "Delayed" },
+    { "id": 3, "code": "SG303", "from": "BLR", "to": "BOM", "duration": "1h 15m", "seats": 120, "price": 3200, "status": "On Time" }
+  ],
+  "passengers": [
+    { "id": 1, "name": "Asha Kumar", "age": 29, "flightId": 1 },
+    { "id": 2, "name": "Ravi Patel", "age": 34, "flightId": 2 },
+    { "id": 3, "name": "Maya Singh", "age": 25, "flightId": 1 }
+  ]
 }
+
+
+
+
+
+--global.css-- under app
+
+:root { --gap: 12px; }
+html, body, #root { height: 100%; }
+body { font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; margin: 0; padding: 0; }
+.container { max-width: 1000px; margin: 24px auto; padding: 16px; }
+.header { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; }
+.nav a { margin-right: 12px; text-decoration: none; }
+.card { border: 1px solid #e6e6e6; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--gap); }
+.small { font-size: 0.9rem; color: #555; }
