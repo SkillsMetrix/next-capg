@@ -9,7 +9,7 @@ export default function DocsPage({ params }) {
 
       {isIndex ? (
         <>
-          <p>This is the Docs index page. Path: <code>{path}</code></p>
+          <p>This is the Docs  page. Path: <code>{path}</code></p>
 
           <h3>Example doc links</h3>
           <ul>
