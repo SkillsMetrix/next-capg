@@ -1,83 +1,28 @@
-import Link from "next/link";
-import dynamic from "next/dynamic";
-import { fetchFlights } from "@/lib/api";
-import { Suspense } from "react";
-
-const FlightCard= dynamic(()=>import('../../components/FlightCard'),{
-  loading: () => <div className="card">Loading card.....!</div>
-})
-
-
-export default async function FlightsPage({searchParams}) {
-  const status=(searchParams && searchParams.status) || null
-  let flights = await fetchFlights()
-  if(status) flights = flights.filter(f => f.status === status)
-  return (
-    <div>
-      <div className="grid">
-        {flights.map(f => (
-          <Suspense key={f.id} fallback={<div className="card">Loading...!</div>}>
-            <FlightCard flight={f}/>
-          </Suspense>
-        ))}
-      </div>
-      
-     
-       
-    </div>
-  );
-}
-
-
------
-
-
-
 'use client'
-import { currencyINR, flightDisplayName } from '@/models/flightModel'
-import Link from 'next/link'
 
+import { useSearchParams,useRouter } from "next/navigation";
+ 
+export default function FlightFilterClient(){
 
-export default function FlightCard({flight}){
-    return(
-        <div className='card'>
-            <h3>{flightDisplayName(flight)}</h3>
-            <div className='small'>Duration: {flight.duration} Seats: {flight.seats}</div>
-            <div style={{marginTop: 8}}>
-                <strong>{currencyINR(flight.price)}</strong>
-                <span style={{marginLeft: 12}} className='small'>Status: {flight.status}</span>
-            </div>
-            <div style={{marginTop: 12}}>
+    const params= useSearchParams()
+    const router= useRouter()
+    const status= params.get('status') || ''
 
-                
-            </div>
+    function setStatus(s){
+        const url= new URL(window.location.href)
+        if(s) url.searchParams.set('status',s)
+        else url.searchParams.delete('status')
+        router.push(url.pathname + url.search)
 
-        </div>
-    )
 }
 
+return (
+    <div style={{margin: '8px 0'}}>
+        <button onClick={()=> setStatus('')}>All</button>
+        <button onClick={()=> setStatus('On Time')}>On Time</button>
+         <button onClick={()=> setStatus('Delayed')}>Delayed</button>
+          <div className="small">Active Filter: {status || 'none'}</div>
+    </div>
+)
 
-
-----
-
-
-import Link from "next/link";
-
-
-
-export default function FlightsLayout({ children }) {
-  return (
-    <section>
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-        <h2>Flight Status</h2>
-        <nav>
-          <Link href="/flights">All</Link> {' | '}
-          <Link href="/flights">On Time</Link> {' | '}
-          <Link href="/flights">Delayed</Link>
-        </nav>
-      </div>
-
-      <div>{children}</div>
-    </section>
-  )
 }
