@@ -1,0 +1,44 @@
+
+'use client'
+
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+
+export default function AddPassengerForm({defaultFlightId = ''}){
+    const router= useRouter()
+    const [name,setName]= useState('')
+    const [age,setAge]= useState('')
+    const [flightId,setFlightId]= useState(defaultFlightId)
+    const [saving,setSaving]= useState(false)
+
+async function handleSubmit(e){
+    e.preventDefault()
+    setSaving(true)
+
+    try{
+        const res= await fetch("/api/passengers",{
+            method: "POST",
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({name,age: Number(age),flightId: Number(flightId)})
+        })
+        if(!res.ok) throw new Error('Failed to add')
+        router.push('/passengers')
+    }catch (err){
+        alert('Error: '+ err.message)
+    }finally{
+        setSaving(false)
+    }
+}
+
+return(
+    <form onSubmit={handleSubmit} className="card">
+        <h3>Add Passenger</h3>
+        <div style={{display: 'grid',gap:8}}>
+            <input  value={name} onChange={e => setName(e.target.value)} placeholder="Enter Name" required />
+             <input value={age} onChange={e => setAge(e.target.value)} placeholder="Enter Age" required />
+              <input value={flightId} onChange={e => setFlightId(e.target.value)} placeholder="Enter Flight ID" required />
+              <button disabled={saving} >{saving ? 'Saving.....' : 'Add Passenger'}</button>
+        </div>
+    </form>
+)
+}
