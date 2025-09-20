@@ -1,65 +1,22 @@
+import GoogleProvider from 'next-auth/providers/google'
 
-'use client'
-
-import { useRouter } from "next/navigation"
-import { useState } from "react"
-
-export default function AddPassengerForm({defaultFlightId = ''}){
-    const router= useRouter()
-    const [name,setName]= useState('')
-    const [age,setAge]= useState('')
-    const [flightId,setFlightId]= useState(defaultFlightId)
-    const [saving,setSaving]= useState(false)
-
-async function handleSubmit(e){
-    e.preventDefault()
-    setSaving(true)
-
-    try{
-        const res= await fetch("/api/passengers",{
-            method: "POST",
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({name,age: Number(age),flightId: Number(flightId)})
+export const authOptions= {
+    providers:[
+        GoogleProvider({
+            clientId: process.env.GOOGLE_CLIENT_ID || '',
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET || ''
         })
-        if(!res.ok) throw new Error('Failed to add')
-        router.push('/passengers')
-    }catch (err){
-        alert('Error: '+ err.message)
-    }finally{
-        setSaving(false)
+    ],
+    secret: process.env.NEXTAUTH_SECRET,
+    session: {strategy: 'jwt'},
+    callback: {
+        async session ({session,token}){
+            if(token){
+                session.user= session.user || {}
+                session.user.email= token.email || session.user.email
+            }
+            return session
+        }
     }
-}
 
-return(
-    <form onSubmit={handleSubmit} className="card">
-        <h3>Add Passenger</h3>
-        <div style={{display: 'grid',gap:8}}>
-            <input  value={name} onChange={e => setName(e.target.value)} placeholder="Enter Name" required />
-             <input value={age} onChange={e => setAge(e.target.value)} placeholder="Enter Age" required />
-              <input value={flightId} onChange={e => setFlightId(e.target.value)} placeholder="Enter Flight ID" required />
-              <button disabled={saving} >{saving ? 'Saving.....' : 'Add Passenger'}</button>
-        </div>
-    </form>
-)
-}
-----
-
-
-
-import {NextResponse} from 'next/server'
-
-const JSON_BASE= 'http://localhost:3001'
-
-export async function POST(request){
-
-    const body= await request.json()
-    const res= await fetch(`${JSON_BASE}/passengers`,{
-         method: "POST",
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(body)
-
-    })
-    const data= await res.json()
-    if(!res.ok) return NextResponse.json({error:' Upstream failed'}, {status: 502})
-        return NextResponse.json(data,{status:201})
 }
