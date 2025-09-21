@@ -1,21 +1,50 @@
-const { createSlice } = require("@reduxjs/toolkit")
-const initialState={
-    items:[],
-    loading: false,
-    error: null
-}
-const usersSlice=createSlice({
-    name: 'users',
-    initialState,
-    reducers:{
-        loadUsersRequest(state) {state.loading=true,state.error=null},
-        addUserRequest(state) {state.loading=true,state.error=null},
-        loadUsersSuccess(state,action) {state.items=action.payload,state.loading=false},
-        addUserSuccess(state) {state.loading=false},
-        operationFailure(state,action) {state.loading=false,state.error=action.payload},
-        setUsers(state,action) {state.items=action.payload,state.error=null}
+import { call, put, takeLatest } from 'redux-saga/effects';
+import { loadUsersRequest, loadUsersSuccess, operationFailure, addUserRequest, addUserSuccess } from './usersSlice';
 
-    }
-})
-export const {loadUsersRequest,addUserSuccess,addUserRequest,loadUsersSuccess,operationFailure,setUsers}=usersSlice.actions
-export default usersSlice.reducer
+const API = '/api'; 
+
+function fetchUsersApi() {
+  return fetch(`${API}/users`).then(async res => {
+    const data = await res.json().catch(() => null);
+    if (!res.ok) throw data || { message: 'Failed to load users' };
+    return data;
+  });
+}
+
+function postUserApi(payload) {
+  return fetch(`${API}/users`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  }).then(async res => {
+    const data = await res.json().catch(() => null);
+    if (!res.ok) throw data || { message: 'Failed to create user' };
+    return data;
+  });
+}
+
+function* handleLoadUsers() {
+  try {
+    const users = yield call(fetchUsersApi);
+    yield put(loadUsersSuccess(users || []));
+  } catch (err) {
+    const msg = err?.message || 'Failed to load users';
+    yield put(operationFailure(msg));
+  }
+}
+
+function* handleAddUser(action) {
+  try {
+    yield call(postUserApi, action.payload);
+    yield put(addUserSuccess());
+    yield call(handleLoadUsers);
+  } catch (err) {
+    const msg = err?.message || 'Failed to add user';
+    yield put(operationFailure(msg));
+  }
+}
+
+export default function* usersSaga() {
+  yield takeLatest(loadUsersRequest.type, handleLoadUsers);
+  yield takeLatest(addUserRequest.type, handleAddUser);
+}
