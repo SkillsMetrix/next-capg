@@ -1,58 +1,22 @@
-const express = require('express');
-const fetch = require('node-fetch');
-const cors = require('cors');
-const bodyParser = require('body-parser');
-const ApiError = require('./errors/ApiError');
-const errorHandler = require('./middleware/errorHandler');
-const pinoHttp = require('pino-http');
-const logger = require('./logger');
 
-const app = express();
+'use client'
 
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 
-app.use(pinoHttp({ logger }));
-
-app.use(cors());
-app.use(bodyParser.json());
-
-const JSON_SERVER = process.env.JSON_SERVER_URL || 'http://localhost:4000';
-
-const wrap = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
-
-app.get('/users', wrap(async (req, res) => {
-  req.log.info('GET /users requested');
-  const r = await fetch(`${JSON_SERVER}/users`);
-  if (!r.ok) {
-    const text = await r.text();
-    req.log.error({ upstream: text }, 'Upstream json-server error');
-    throw new ApiError(502, 'Upstream json-server error', 'UPSTREAM_ERROR', { upstreamText: text });
-  }
-  const users = await r.json();
-  res.json(users);
-}));
-
-app.post('/users', wrap(async(req,res)=>{
-const {name,email}= req.body
-if(!name || !email){
-  req.log.warn({body: req.body},' Validation Failed on Post User')
-  throw new ApiError(400, 'name and email required', 'Valication_ERROR', { fields:['name','email'] });
+export default function NavBar(){
+    const pathName= usePathname()
+    const linkClass= (p) => `mr-6 text-sm ${pathName === p ? 'font-semibold underline' : 'text-blue-600 hover:underline'}`
+    return (
+        <nav className="bg-white shadow-sm">
+            <div className="max-w-4xl mx-auto px-4 py-3 flex items-center">
+                <div className="flex-1"><Link href="/" className="text-lg font-bold text-gray-800">User App</Link></div>
+                <div>
+                    <Link href="/" className={linkClass('/')}>Home</Link>
+                     <Link href="/loadusers" className={linkClass('/loadusers')}>Load Users</Link>
+                     <Link href="/adduser" className={linkClass('/adduser')}>Load Users</Link>
+                </div>
+            </div>
+        </nav>
+    )
 }
-const r= await fetch(`${JSON_SERVER}/users`,{
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({name,email})
-})
-
-const text = await r.text();
- if (!r.ok) {
-    req.log.error({ upstream: text }, 'Upstream create failed');
-    throw new ApiError(502, 'Upstream json-server error', 'UPSTREAM_ERROR', { upstreamText: text });
- }
- const created= JSON.parse(text)
- res.status(201).json(created)
-}))
-
-app.use(errorHandler);
-
-const PORT = process.env.PORT || 3004;
-app.listen(3004, () => logger.info(`Express API running → http://localhost:${PORT}`));
