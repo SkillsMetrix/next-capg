@@ -1,50 +1,16 @@
-import { call, put, takeLatest } from 'redux-saga/effects';
-import { loadUsersRequest, loadUsersSuccess, operationFailure, addUserRequest, addUserSuccess } from './usersSlice';
+import { configureStore } from '@reduxjs/toolkit';
+import createSagaMiddleware from 'redux-saga';
+import usersReducer from './users/usersSlice';
+import rootSaga from './rootSaga';
 
-const API = '/api'; 
-
-function fetchUsersApi() {
-  return fetch(`${API}/users`).then(async res => {
-    const data = await res.json().catch(() => null);
-    if (!res.ok) throw data || { message: 'Failed to load users' };
-    return data;
+export function makeStore(preloadedState) {
+  const sagaMiddleware = createSagaMiddleware();
+  const store = configureStore({
+    reducer: { users: usersReducer },
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware({ thunk: false, serializableCheck: false }).concat(sagaMiddleware),
+    preloadedState,
   });
-}
-
-function postUserApi(payload) {
-  return fetch(`${API}/users`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  }).then(async res => {
-    const data = await res.json().catch(() => null);
-    if (!res.ok) throw data || { message: 'Failed to create user' };
-    return data;
-  });
-}
-
-function* handleLoadUsers() {
-  try {
-    const users = yield call(fetchUsersApi);
-    yield put(loadUsersSuccess(users || []));
-  } catch (err) {
-    const msg = err?.message || 'Failed to load users';
-    yield put(operationFailure(msg));
-  }
-}
-
-function* handleAddUser(action) {
-  try {
-    yield call(postUserApi, action.payload);
-    yield put(addUserSuccess());
-    yield call(handleLoadUsers);
-  } catch (err) {
-    const msg = err?.message || 'Failed to add user';
-    yield put(operationFailure(msg));
-  }
-}
-
-export default function* usersSaga() {
-  yield takeLatest(loadUsersRequest.type, handleLoadUsers);
-  yield takeLatest(addUserRequest.type, handleAddUser);
+  sagaMiddleware.run(rootSaga);
+  return store;
 }
