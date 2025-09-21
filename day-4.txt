@@ -6,12 +6,8 @@ const ApiError = require('./errors/ApiError');
 const errorHandler = require('./middleware/errorHandler');
 const pinoHttp = require('pino-http');
 const logger = require('./logger');
-
 const app = express();
-
-
 app.use(pinoHttp({ logger }));
-
 app.use(cors());
 app.use(bodyParser.json());
 
@@ -30,3 +26,7 @@ app.get('/users', wrap(async (req, res) => {
   const users = await r.json();
   res.json(users);
 }));
+app.use(errorHandler)
+app.listen(3004,()=>{
+    console.log('Server is running ')
+})
