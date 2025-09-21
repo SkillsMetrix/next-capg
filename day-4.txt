@@ -1,0 +1,5 @@
+npm init -y
+ 1293  npm i express cors json-server node-fetch pino pino-http
+ 1294  sudo npm i express cors json-server node-fetch pino pino-http
+ 1295  npm i json-server@0.17.3
+ 1296  sudo npm i json-server@0.17.3
