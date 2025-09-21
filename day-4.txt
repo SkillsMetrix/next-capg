@@ -1,48 +1,21 @@
-const { default: logger } = require("@/utils/logger")
-
-const UPSTREAM = process.env.API_URL || 'http://localhost:3004';
-
-async function proxyFetch(path, opts = {}) {
-  const url = `${UPSTREAM}${path}`;
-  const res = await fetch(url, opts);
-  const ct = res.headers.get('content-type') || '';
-  const text = await res.text();
-  let data = null;
-  try { if (ct.includes('application/json')) data = JSON.parse(text); else data = text; } catch { data = text; }
-
-  if (!res.ok) {
-    const msg = data?.message || data || `Upstream error: ${res.status}`;
-    const payload = { status: 'error', message: msg, code: 'UPSTREAM_ERROR', details: data };
-    logger.error({ payload, url }, 'Upstream error on proxyFetch');
-    return new Response(JSON.stringify(payload), { status: 502, headers: { 'Content-Type': 'application/json' } });
-  }
-
-  logger.info({ url }, 'Proxy fetch success');
-  return new Response(JSON.stringify(data), { status: res.status, headers: { 'Content-Type': 'application/json' } });
+const { createSlice } = require("@reduxjs/toolkit")
+const initialState={
+    items:[],
+    loading: false,
+    error: null
 }
+const usersSlice=createSlice({
+    name: 'users',
+    initialState,
+    reducers:{
+        loadUsersRequest(state) {state.loading=true,state.error=null},
+        addUserRequest(state) {state.loading=true,state.error=null},
+        loadUsersSuccess(state,action) {state.items=action.payload,state.loading=false},
+        addUserSuccess(state) {state.loading=false},
+        operationFailure(state,action) {state.loading=false,state.error=action.payload},
+        setUsers(state,action) {state.items=action.payload,state.error=null}
 
-export async function GET() {
-  try {
-    return await proxyFetch('/users');
-  } catch (err) {
-    logger.error({ err }, 'API GET /api/users error');
-    return new Response(JSON.stringify({ status:'error', message:'Internal server error' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
-  }
-}
-
-export async function POST(req) {
-  try {
-    const body = await req.json();
-    if (!body || !body.name || !body.email) {
-      return new Response(JSON.stringify({ status:'error', message:'name and email required', code:'VALIDATION_ERROR' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
     }
-    return await proxyFetch('/users', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-  } catch (err) {
-    logger.error({ err }, 'API POST /api/users error');
-    return new Response(JSON.stringify({ status:'error', message:'Internal server error' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
-  }
-}
+})
+export const {loadUsersRequest,addUserSuccess,addUserRequest,loadUsersSuccess,operationFailure,setUsers}=usersSlice.actions
+export default usersSlice.reducer
