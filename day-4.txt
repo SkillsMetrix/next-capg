@@ -6,8 +6,12 @@ const ApiError = require('./errors/ApiError');
 const errorHandler = require('./middleware/errorHandler');
 const pinoHttp = require('pino-http');
 const logger = require('./logger');
+
 const app = express();
+
+
 app.use(pinoHttp({ logger }));
+
 app.use(cors());
 app.use(bodyParser.json());
 
@@ -26,7 +30,29 @@ app.get('/users', wrap(async (req, res) => {
   const users = await r.json();
   res.json(users);
 }));
-app.use(errorHandler)
-app.listen(3004,()=>{
-    console.log('Server is running ')
+
+app.post('/users', wrap(async(req,res)=>{
+const {name,email}= req.body
+if(!name || !email){
+  req.log.warn({body: req.body},' Validation Failed on Post User')
+  throw new ApiError(400, 'name and email required', 'Valication_ERROR', { fields:['name','email'] });
+}
+const r= await fetch(`${JSON_SERVER}/users`,{
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({name,email})
 })
+
+const text = await r.text();
+ if (!r.ok) {
+    req.log.error({ upstream: text }, 'Upstream create failed');
+    throw new ApiError(502, 'Upstream json-server error', 'UPSTREAM_ERROR', { upstreamText: text });
+ }
+ const created= JSON.parse(text)
+ res.status(201).json(created)
+}))
+
+app.use(errorHandler);
+
+const PORT = process.env.PORT || 3004;
+app.listen(3004, () => logger.info(`Express API running → http://localhost:${PORT}`));
